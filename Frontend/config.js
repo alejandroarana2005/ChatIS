@@ -1,0 +1,1 @@
+window.CHAT_SERVER_URL = "https://your-render-service.onrender.com";

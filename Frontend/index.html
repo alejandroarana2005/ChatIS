@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Chat</title>
+</head>
+
+<body>
+    <div>
+        <div id="messages"></div>
+        <form id="form">
+            <input id="input" type="text" autocomplete="off" maxlength="2000" />
+            <button type="submit">Enviar</button>
+        </form>
+        <p id="status" role="status">Conectando...</p>
+    </div>
+
+    <script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
+    <script src="./config.js"></script>
+
+    <script>
+        const socket = io(window.CHAT_SERVER_URL)
+        const form = document.getElementById('form')
+        const input = document.getElementById('input')
+        const messages = document.getElementById('messages')
+        const status = document.getElementById('status')
+
+        form.addEventListener('submit', (e) => {
+            e.preventDefault()
+
+            if (input.value.trim()) {
+                socket.emit('message', {                    
+                    message: input.value.trim()
+                })
+                input.value = ''
+            }
+        })
+
+        function renderMessage(data) {
+            const paragraph = document.createElement('p')
+            paragraph.textContent = data.message
+            messages.appendChild(paragraph)
+        }
+
+        socket.on('connect', () => {
+            status.textContent = 'Conectado'
+        })
+
+        socket.on('disconnect', () => {
+            status.textContent = 'Desconectado. Reconectando...'
+        })
+
+        socket.on('connect_error', () => {
+            status.textContent = 'No se pudo conectar con el servidor.'
+        })
+
+        socket.on('message-history', (history) => {
+            messages.replaceChildren()
+            history.forEach(renderMessage)
+        })
+
+        socket.on('messages', renderMessage)
+
+        socket.on('message-error', (error) => {
+            status.textContent = error
+        })
+    </script>
+</body>
+</html>
